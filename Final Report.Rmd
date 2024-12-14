@@ -10,7 +10,6 @@ output:
     toc: true
     number_sections: true
 date: "2024-12-15"
-bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -33,7 +32,8 @@ This allows the constructed confidence intervals to achieve the best between two
 
 Despite its advantages, the PPI framework has notable limitations. 
 When the provided predictions are inaccurate, the constructed intervals can perform worse than the "classical intervals" derived solely from labeled data. 
-To improve the statistical efficiency of PPI, Angelopoulos et al. (2024) developed Efficient Prediction-Powered Inference (PPI++), which incorporates a weighting parameter, $\lambda$, to minimize the asymptotic variance of the prediction-powered estimator. 
+To improve the statistical efficiency of PPI, Angelopoulos et al. (2024) developed Efficient Prediction-Powered Inference (PPI++), 
+which incorporates a weighting parameter, $\lambda$, to minimize the asymptotic variance of the prediction-powered estimator. 
 Additionally, Zrnic and Candès (2024) proposed Cross-Prediction-Powered Inference (Cross-PPI), an extension of PPI that ensures validity by splitting the labeled data to train the predictive model.
 
 Our study aims to evaluate the performance of the PPI, PPI++, Cross-PPI, and the combination of PPI++ and Cross-PPI (Cross-PPI++) methods through a comprehensive simulation study. 
@@ -42,7 +42,8 @@ Initially, we will evaluate these methods in settings where the labeled and unla
 Furthermore, we will expand our focus to include the common challenge in EHR data analysis known as covariate shift, where the distribution of labeled data differs from that of unlabeled data. 
 To address this, we will incorporate the density ratio into the PPI methods.
 
-In the simulation study, we will focus on the simplest estimand, the mean outcome, and evaluate the performance of these methods across various settings, including different ratios of labeled to unlabeled data, varying levels of predictive model accuracy, diverse feature distributions, and degrees of covariate shift. 
+In the simulation study, we will focus on the simplest estimand, the mean outcome, and evaluate the performance of these methods across various settings, 
+including different ratios of labeled to unlabeled data, varying levels of predictive model accuracy, diverse feature distributions, and degrees of covariate shift. 
 The simulation will be replicated 100 times, and performance metrics will include the coverage probability of confidence intervals, the mean width of intervals, and the root mean squared error of the point estimates. 
 By systematically exploring these scenarios, we aim to identify the conditions under which each method performs optimally or encounters limitations, offering practical guidance for their application in real-world EHR datasets.
 
@@ -96,6 +97,10 @@ $$
 
 # Extensions under Covariate Shift
 
+Although the foundational PPI framework assumes that the labeled and unlabeled data are drawn from the same distribution, this assumption does not always hold in practice.
+One common violation is covariate shift, where the distribution of input features, $p(X)$, differs between the labeled and unlabeled dataset, while the conditional distribution of the outcome given the feature $p(Y|X)$ remains the same (Shimodaira, 2000).
+To address this mismatch, the density ratio $w(x) = \tilde p(x)/ p(x)$ is introduced, where $\tilde p(x)$ is the distribution of the features in the unlabeled data and $p(x)$ is the distribution of the features in the gold-standard data (Sugiyama et al., 2007).
+Incorporating the density ratio allows for adjusting model predictions to account for the covariate shift, ensuring valid and unbiased inference in scenarios where the covariate shift occurs.
 
 Denote $w(x) = p^*(x)/\tilde p(x)$ the density ratio.
 
@@ -205,6 +210,18 @@ We consider three scenarios of covariate shift:
     w(x) = \frac{p^*(x)}{\tilde p(x)} = \left( \frac{p_1}{p_0} \right)^{x_2} \left( \frac {1-p_1}{1-p_0}\right)^{1-x_2}
     $$
 
+
+
+# Results
+
+# Conclusion
+
+# Discussion
+
+# References
+
+# Appendix
+
 ```{r}
 N <- 10000
 n <- c(100, 200, 500, 1000, 2000, 5000)
@@ -284,18 +301,4 @@ ci_ppi <- function(pointest, std, alpha) {
   ul <- pointest + z*std
   return(c(ll, ul))
 }
-```
-
-# Results
-
-# Conclusion
-
-# Discussion
-
-# References
-
-# Appendix
-
-```{r}
-
 ```
