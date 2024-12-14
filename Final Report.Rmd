@@ -1,15 +1,17 @@
 ---
 title: "Efficient Prediction-Powered Inference under Covariate Shift"
 subtitle: "PHS 7065 Fall 2024 - Final Report"
-authors: |
-  Instructor: Dr. Xiang Zhou
-  Group Member: Yingjia Wei, Haojia Li
+author: |
+  | Instructor: Dr. Xuan Wang
+  | Group Members: Yingjia Wei, Haojia Li
 geometry: margin=3cm
 output: 
   pdf_document:
     toc: true
     number_sections: true
-date: "2024-12-15"
+date: "2024-12-14"
+bibliography: references.bib
+link-citations: true
 ---
 
 ```{r setup, include=FALSE}
@@ -21,10 +23,10 @@ options(digits = 4)
 \newpage
 # Introduction
 
-A substantial proportion of missing data is a common challenge in Electronic Health Records (EHR) data analysis, which has the potential to undermine the validity of research findings (Sterne et al., 2009).
+A substantial proportion of missing data is a common challenge in Electronic Health Records (EHR) data analysis, which has the potential to undermine the validity of research findings [@sterne_multiple_2009].
 Machine learning algorithms can be employed to predict missing values based on observed data. 
 However, questions remain about the validity of conclusions drawn from such predicted data. 
-To address this concern, Angelopoulos et al. (2023) proposed Prediction-Powered Inference (PPI), a framework designed to enable provably valid statistical inference when predictions are used as data.
+To address this concern, @angelopoulos_prediction-powered_2023 proposed Prediction-Powered Inference (PPI), a framework designed to enable provably valid statistical inference when predictions are used as data.
 The PPI method leverages a gold-standard dataset, consisting of features paired with observed outcomes, to quantify and correct errors made by the machine-learning algorithm on the unlabeled dataset. 
 This allows the constructed confidence intervals to achieve the best between two extremes: using only labeled data and relying solely on predicted unlabeled data:
 (1) the intervals are valid, as they contain the true value of the estimand of interest, and 
@@ -32,9 +34,9 @@ This allows the constructed confidence intervals to achieve the best between two
 
 Despite its advantages, the PPI framework has notable limitations. 
 When the provided predictions are inaccurate, the constructed intervals can perform worse than the "classical intervals" derived solely from labeled data. 
-To improve the statistical efficiency of PPI, Angelopoulos et al. (2024) developed Efficient Prediction-Powered Inference (PPI++), 
+To improve the statistical efficiency of PPI, @angelopoulos_ppi_2024 developed Efficient Prediction-Powered Inference (PPI++), 
 which incorporates a weighting parameter, $\lambda$, to minimize the asymptotic variance of the prediction-powered estimator. 
-Additionally, Zrnic and Candès (2024) proposed Cross-Prediction-Powered Inference (Cross-PPI), an extension of PPI that ensures validity by splitting the labeled data to train the predictive model.
+Additionally, @zrnic_cross-prediction-powered_2024 proposed Cross-Prediction-Powered Inference (Cross-PPI), an extension of PPI that ensures validity by splitting the labeled data to train the predictive model.
 
 Our study aims to evaluate the performance of the PPI, PPI++, Cross-PPI, and the combination of PPI++ and Cross-PPI (Cross-PPI++) methods through a comprehensive simulation study. 
 Specifically, we will examine their statistical properties, including the validity and efficiency of the constructed confidence intervals, under various simulated scenarios. 
@@ -66,7 +68,7 @@ The key conceptual innovation of PPI lies in the introduction of measure of fit 
 - Measure of fit $m_\theta$ is computed on the predictions for the unlabeled data $(\tilde X, f(\tilde X))$ and quantifies how close the estimate of $\theta$ it to its true value.
 - Rectifier $\Delta_\theta$ is defined as the difference of the measure of fit $m_\theta$ computed using the labeled data and its predictions $(X, Y, f(X))$. If the predictions are perfect, the rectifier is equal to zero.
 
-The PPI method computes a confidence interval as $\mathcal C^{PP}_\alpha = \{ \theta \text{ such that} |m_\theta + \Delta_\theta| \leq t_\theta(\alpha) \}$, where $t_\theta(\alpha)$ is a constant depending on the error level $\alpha$.
+The PPI method computes a confidence interval as $\mathcal C^{PP}_\alpha = \{ \theta \text{ such that } |m_\theta + \Delta_\theta| \leq t_\theta(\alpha) \}$, where $t_\theta(\alpha)$ is a constant depending on the error level $\alpha$.
 
 When the estimand of interest is the mean outcome in unlabeled data, the algorithm for constructing the confidence interval $\mathcal C^{PP}_\alpha$ at error level $\alpha \in (0,1)$ is as follows:
 
@@ -98,8 +100,8 @@ $$
 # Extensions under Covariate Shift
 
 Although the foundational PPI framework assumes that the labeled and unlabeled data are drawn from the same distribution, this assumption does not always hold in practice.
-One common violation is covariate shift, where the distribution of input features, $p(X)$, differs between the labeled and unlabeled dataset, while the conditional distribution of the outcome given the feature $p(Y|X)$ remains the same (Shimodaira, 2000).
-To address this mismatch, the density ratio $w(x) = \tilde p(x)/ p(x)$ is introduced, where $\tilde p(x)$ is the distribution of the features in the unlabeled data and $p(x)$ is the distribution of the features in the gold-standard data (Sugiyama et al., 2007).
+One common violation is covariate shift, where the distribution of input features, $p(X)$, differs between the labeled and unlabeled dataset, while the conditional distribution of the outcome given the feature $p(Y|X)$ remains the same [@shimodaira_improving_2000].
+To address this mismatch, the density ratio $w(x) = \tilde p(x)/ p(x)$ is introduced, where $\tilde p(x)$ is the distribution of the features in the unlabeled data and $p(x)$ is the distribution of the features in the gold-standard data [@sugiyama_covariate_2007].
 Incorporating the density ratio allows for adjusting model predictions to account for the covariate shift, ensuring valid and unbiased inference in scenarios where the covariate shift occurs.
 
 Denote $w(x) = p^*(x)/\tilde p(x)$ the density ratio.
@@ -219,6 +221,9 @@ We consider three scenarios of covariate shift:
 # Discussion
 
 # References
+
+::: {#refs}
+:::
 
 # Appendix
 
