@@ -14,44 +14,6 @@ bibliography: references.bib
 link-citations: true
 ---
  
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = F,warning = F, message = F, cache = F)
-options(knitr.kable.NA = "")
-options(digits = 4)
-```
- 
-```{r load packages}
-library(tidyverse)
-```
- 
-\newpage
-# Introduction
-
-A substantial proportion of missing data is a common challenge in Electronic Health Records (EHR) data analysis, which has the potential to undermine the validity of research findings (Sterne et al., 2009).
-Machine learning algorithms can be employed to predict missing values based on observed data. 
-However, questions remain about the validity of conclusions drawn from such predicted data. 
-To address this concern, Angelopoulos et al. (2023) proposed Prediction-Powered Inference (PPI), a framework designed to enable provably valid statistical inference when predictions are used as data.
-The PPI method leverages a gold-standard dataset, consisting of features paired with observed outcomes, to quantify and correct errors made by the machine-learning algorithm on the unlabeled dataset. 
-This allows the constructed confidence intervals to achieve the best between two extremes: using only labeled data and relying solely on predicted unlabeled data:
-(1) the intervals are valid, as they contain the true value of the estimand of interest, and 
-(2) they are more efficient, with narrower widths achieved by incorporating information from the larger sample size of unlabeled data.
-
-Despite its advantages, the PPI framework has notable limitations. 
-When the provided predictions are inaccurate, the constructed intervals can perform worse than the "classical intervals" derived solely from labeled data. 
-To improve the statistical efficiency of PPI, Angelopoulos et al. (2024) developed Efficient Prediction-Powered Inference (PPI++), 
-which incorporates a weighting parameter, $\lambda$, to minimize the asymptotic variance of the prediction-powered estimator. 
-Additionally, Zrnic and Candès (2024) proposed Cross-Prediction-Powered Inference (Cross-PPI), an extension of PPI that ensures validity by splitting the labeled data to train the predictive model.
-
-Our study aims to evaluate the performance of the PPI, PPI++, Cross-PPI, and the combination of PPI++ and Cross-PPI (Cross-PPI++) methods through a comprehensive simulation study. 
-Specifically, we will examine their statistical properties, including the validity and efficiency of the constructed confidence intervals, under various simulated scenarios. 
-Initially, we will evaluate these methods in settings where the labeled and unlabeled data are drawn from the same distribution. 
-Furthermore, we will expand our focus to include the common challenge in EHR data analysis known as covariate shift, where the distribution of labeled data differs from that of unlabeled data. 
-To address this, we will incorporate the density ratio into the PPI methods.
-
-In the simulation study, we will focus on the simplest estimand, the mean outcome, and evaluate the performance of these methods across various settings, 
-including different ratios of labeled to unlabeled data, varying levels of predictive model accuracy, diverse feature distributions, and degrees of covariate shift. 
-The simulation will be replicated 100 times, and performance metrics will include the coverage probability of confidence intervals, the mean width of intervals, and the root mean squared error of the point estimates. 
-By systematically exploring these scenarios, we aim to identify the conditions under which each method performs optimally or encounters limitations, offering practical guidance for their application in real-world EHR datasets.
 
 # Methods
 
@@ -255,7 +217,3 @@ We compared the performance of different PPI frameworks under different scenario
 Density ratio weighting performs well when the labeled and unlabeled data have relatively similar distributions. In such cases, PPI frameworks with density ratio weighting can achieve narrow and valid confidence interval estimation. However, estimating density ratio in real-world data could be challenging, where the data-generating process is complex and the true underlying distributions are unknown. Future work could explore the use of more robust techniques for density ratio estimation, such as kernel-based methods or machine learning approaches, to improve reliability in diverse real-world scenarios.
 
 Our study also highlights the trade-off between efficiency and validity across different PPI frameworks. Both adding parameter $\lambda$ and involving cross-prediction can improve efficiency, however, they may loss validity when covariate shift is severe and noise level in data is high. Standard PPI always maintain the highest overall coverage rate in different scenarios, and this robustness is particularly important in real-world applications. Therefore, the choice of PPI framework depends on the nature of application and data, balancing the efficiency and validity for specific scientific questions. 
-
-# References
-
-# Appendix

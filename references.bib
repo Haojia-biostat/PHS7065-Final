@@ -1,0 +1,142 @@
+
+@misc{angelopoulos_ppi_2024,
+	title = {{PPI}++: {Efficient} {Prediction}-{Powered} {Inference}},
+	shorttitle = {{PPI}++},
+	url = {http://arxiv.org/abs/2311.01453},
+	doi = {10.48550/arXiv.2311.01453},
+	abstract = {We present PPI++: a computationally lightweight methodology for estimation and inference based on a small labeled dataset and a typically much larger dataset of machine-learning predictions. The methods automatically adapt to the quality of available predictions, yielding easy-to-compute confidence sets -- for parameters of any dimensionality -- that always improve on classical intervals using only the labeled data. PPI++ builds on prediction-powered inference (PPI), which targets the same problem setting, improving its computational and statistical efficiency. Real and synthetic experiments demonstrate the benefits of the proposed adaptations.},
+	urldate = {2024-12-13},
+	publisher = {arXiv},
+	author = {Angelopoulos, Anastasios N. and Duchi, John C. and Zrnic, Tijana},
+	month = mar,
+	year = {2024},
+	note = {arXiv:2311.01453 [stat]},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Statistics - Methodology},
+	annote = {Comment: Code available at https://github.com/aangelopoulos/ppi\_py},
+	file = {Preprint PDF:C\:\\Users\\u6034070\\Zotero\\storage\\BQ35ZY4U\\Angelopoulos et al. - 2024 - PPI++ Efficient Prediction-Powered Inference.pdf:application/pdf;Snapshot:C\:\\Users\\u6034070\\Zotero\\storage\\ZD9HNEWS\\2311.html:text/html},
+}
+
+@article{sterne_multiple_2009,
+	title = {Multiple imputation for missing data in epidemiological and clinical research: potential and pitfalls},
+	volume = {338},
+	copyright = {©  . This is an open-access article distributed under the terms of the Creative Commons Attribution Non-commercial License, which permits use, distribution, and reproduction in any medium, provided the original work is properly cited, the use is non commercial and is otherwise in compliance with the license. See: http://creativecommons.org/licenses/by-nc/2.0/  and  http://creativecommons.org/licenses/by-nc/2.0/legalcode.},
+	issn = {0959-8138, 1468-5833},
+	shorttitle = {Multiple imputation for missing data in epidemiological and clinical research},
+	url = {https://www.bmj.com/content/338/bmj.b2393},
+	doi = {10.1136/bmj.b2393},
+	abstract = {{\textless}p{\textgreater}Most studies have some missing data. \textbf{Jonathan Sterne and colleagues} describe the appropriate use and reporting of the multiple imputation approach to dealing with them {\textless}/p{\textgreater}},
+	language = {en},
+	urldate = {2024-12-13},
+	journal = {BMJ},
+	author = {Sterne, Jonathan A. C. and White, Ian R. and Carlin, John B. and Spratt, Michael and Royston, Patrick and Kenward, Michael G. and Wood, Angela M. and Carpenter, James R.},
+	month = jun,
+	year = {2009},
+	pmid = {19564179},
+	note = {Publisher: British Medical Journal Publishing Group
+Section: Research Methods \&amp; Reporting},
+	pages = {b2393},
+	file = {Snapshot:C\:\\Users\\u6034070\\Zotero\\storage\\QJRY8QQL\\bmj.html:text/html},
+}
+
+@article{zrnic_cross-prediction-powered_2024,
+	title = {Cross-prediction-powered inference},
+	volume = {121},
+	issn = {0027-8424, 1091-6490},
+	url = {https://pnas.org/doi/10.1073/pnas.2322083121},
+	doi = {10.1073/pnas.2322083121},
+	abstract = {While reliable data-driven decision-making hinges on high-quality labeled data, the acquisition of quality labels often involves laborious human annotations or slow and expensive scientific measurements. Machine learning is becoming an appealing alternative as sophisticated predictive techniques are being used to quickly and cheaply produce large amounts of predicted labels; e.g., predicted protein structures are used to supplement experimentally derived structures, predictions of socioeconomic indicators from satellite imagery are used to supplement accurate survey data, and so on. Since predictions are imperfect and potentially biased, this practice brings into question the validity of downstream inferences. We introduce cross-prediction: a method for valid inference powered by machine learning. With a small labeled dataset and a large unlabeled dataset, cross-prediction imputes the missing labels via machine learning and applies a form of debiasing to remedy the prediction inaccuracies. The resulting inferences achieve the desired error probability and are more powerful than those that only leverage the labeled data. Closely related is the recent proposal of prediction-powered inference [A. N. Angelopoulos, S. Bates, C. Fannjiang, M. I. Jordan, T. Zrnic,
+              Science
+              382
+              , 669–674 (2023)], which assumes that a good pretrained model is already available. We show that cross-prediction is consistently more powerful than an adaptation of prediction-powered inference in which a fraction of the labeled data is split off and used to train the model. Finally, we observe that cross-prediction gives more stable conclusions than its competitors; its CIs typically have significantly lower variability.},
+	language = {en},
+	number = {15},
+	urldate = {2024-12-14},
+	journal = {Proceedings of the National Academy of Sciences},
+	author = {Zrnic, Tijana and Candès, Emmanuel J.},
+	month = apr,
+	year = {2024},
+	pages = {e2322083121},
+	file = {Full Text:C\:\\Users\\u6034070\\Zotero\\storage\\2ME8JCKS\\Zrnic and Candès - 2024 - Cross-prediction-powered inference.pdf:application/pdf},
+}
+
+@article{angelopoulos_prediction-powered_2023,
+	title = {Prediction-powered inference},
+	volume = {382},
+	issn = {0036-8075, 1095-9203},
+	url = {https://www.science.org/doi/10.1126/science.adi6000},
+	doi = {10.1126/science.adi6000},
+	abstract = {Prediction-powered inference is a framework for performing valid statistical inference when an experimental dataset is supplemented with predictions from a machine-learning system. The framework yields simple algorithms for computing provably valid confidence intervals for quantities such as means, quantiles, and linear and logistic regression coefficients without making any assumptions about the machine-learning algorithm that supplies the predictions. Furthermore, more accurate predictions translate to smaller confidence intervals. Prediction-powered inference could enable researchers to draw valid and more data-efficient conclusions using machine learning. The benefits of prediction-powered inference were demonstrated with datasets from proteomics, astronomy, genomics, remote sensing, census analysis, and ecology.
+          , 
+            Editor’s summary
+            
+              Over the past decade, there has been rapid progress in the development of large-scale machine learning (ML) systems that provide predictions related to various scientific phenomena. Unfortunately, the standard statistical approaches used to calculate confidence intervals and
+              P
+              values from gold standard data lose their statistical validity for ML-derived data. Angelopoulos
+              et al
+              . introduced “prediction-powered inference,” a standardized protocol for constructing valid confidence intervals and
+              P
+              values that enables the power and scale of ML systems to be used as predictors while ensuring responsible and reliable scientific inferences. The method has been demonstrated on a broad range of real datasets and offers a promising statistical approach for using ML to derive scientific conclusions responsibly. —Yury Suleymanov
+            
+          , 
+            A statistical protocol for valid scientific discovery using machine learning is presented.},
+	language = {en},
+	number = {6671},
+	urldate = {2024-12-14},
+	journal = {Science},
+	author = {Angelopoulos, Anastasios N. and Bates, Stephen and Fannjiang, Clara and Jordan, Michael I. and Zrnic, Tijana},
+	month = nov,
+	year = {2023},
+	pages = {669--674},
+	file = {Submitted Version:C\:\\Users\\u6034070\\Zotero\\storage\\5WK3CX3X\\Angelopoulos et al. - 2023 - Prediction-powered inference.pdf:application/pdf},
+}
+
+@article{shimodaira_improving_2000,
+	title = {Improving predictive inference under covariate shift by weighting the log-likelihood function},
+	volume = {90},
+	copyright = {https://www.elsevier.com/tdm/userlicense/1.0/},
+	issn = {03783758},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/S0378375800001154},
+	doi = {10.1016/S0378-3758(00)00115-4},
+	language = {en},
+	number = {2},
+	urldate = {2024-12-14},
+	journal = {Journal of Statistical Planning and Inference},
+	author = {Shimodaira, Hidetoshi},
+	month = oct,
+	year = {2000},
+	pages = {227--244},
+}
+
+@article{sugiyama_covariate_2007,
+	title = {Covariate {Shift} {Adaptation} by {Importance} {Weighted} {Cross} {Validation}},
+	volume = {8},
+	issn = {1533-7928},
+	url = {http://jmlr.org/papers/v8/sugiyama07a.html},
+	abstract = {A common assumption in supervised learning is that the input points in
+the training set follow the same probability distribution as
+the input points that will be given in the future test phase.
+However, this assumption is not satisfied, for example, when the
+outside of the training region is extrapolated.  The situation where
+the training input points and test input points follow
+different distributions while the conditional distribution of
+output values given input points is unchanged is called the
+covariate shift.  Under the covariate shift, standard model
+selection techniques such as cross validation do not work as desired
+since its unbiasedness is no longer maintained.  In this paper, we
+propose a new method called importance weighted cross
+validation (IWCV), for which we prove its unbiasedness even under the
+covariate shift.  The IWCV procedure is the only one that can be
+applied for unbiased classification under covariate shift, whereas
+alternatives to IWCV exist for regression.  The usefulness of our
+proposed method is illustrated by simulations, and furthermore
+demonstrated in the brain-computer interface, where strong
+non-stationarity effects can be seen between training and test
+sessions.},
+	number = {35},
+	urldate = {2024-12-14},
+	journal = {Journal of Machine Learning Research},
+	author = {Sugiyama, Masashi and Krauledat, Matthias and Müller, Klaus-Robert},
+	year = {2007},
+	pages = {985--1005},
+	file = {Full Text PDF:C\:\\Users\\u6034070\\Zotero\\storage\\48CMQZIC\\Sugiyama et al. - 2007 - Covariate Shift Adaptation by Importance Weighted .pdf:application/pdf},
+}
