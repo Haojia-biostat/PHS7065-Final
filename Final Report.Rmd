@@ -77,25 +77,91 @@ When the estimand of interest is the mean outcome in unlabeled data, the algorit
 5. Construct prediction-powered confidence set: $\mathcal C^{PP}_\alpha = \left( \hat \theta^{PP} \pm t_\alpha \right)$
 
 ## PPI++
-
+The original PPI constructs a confidence set for $\theta^*$ by searching through all possible values of $\theta$. 
 $$
+\begin{aligned}
 \hat \theta ^{PP}
-= \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) + \frac{1}{n}\sum_{i=1}^{n} Y_i - \frac{1}{n}\sum_{i=1}^{n} f(X_i)
-= \frac{1}{n}\sum_{i=1}^{n} Y_i + \left( \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i) \right)
+& = L_n(\theta) + \tilde L^f_N(\theta) - L^f_n(\theta)\\
+& = \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) + \frac{1}{n}\sum_{i=1}^{n} Y_i - \frac{1}{n}\sum_{i=1}^{n} f(X_i)\\
+& = \frac{1}{n}\sum_{i=1}^{n} Y_i + \left( \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i) \right)
+\end{aligned}
+$$
+Where $L(\theta)$ is the losses. It has a limitation: when the provided predictions are inaccurate, the intervals can be worse than the “classical intervals” using only the labeled data. To address this problem, we introduce a parameter $\lambda$:
+
+$$
+\begin{aligned}
+\hat \theta ^{PP++}
+& = L_n(\theta) + \lambda(\tilde L^f_N(\theta) - L^f_n(\theta)) \\
+& = \frac{1}{n}\sum_{i=1}^{n} Y_i + \lambda \left( \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i) \right)
+\end{aligned}
 $$
 
-Adding the parameter $\lambda$ to minimize the asymptotic variance of the prediction-powered estimator, we have:
+Tuning the parameter $\lambda$ to minimize the asymptotic variance of the prediction-powered estimator, we have:
 
 $$
-\hat \theta \text{ by Efficient PPI under covariate shift} = \frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i + 
-\lambda \left[ \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} w(X_i)f(X_i) \right]
+\begin{aligned}
+\hat \lambda & = argmin_\lambda E\left\{
+\frac{1}{n}\sum_{i=1}^{n} Y_i - \theta^* + 
+\lambda \left[ \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i) \right]\right\}^2 \\
+& = \frac 
+{Cov\left(\frac{1}{n}\sum_{i=1}^{n} Y_i, \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i)\right)} 
+{Var\left(\frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i)\right)} \\
+& = \frac 
+{\frac{1}{n} Cov\left(Y, f(X)\right)} 
+{\frac{1}{N} Var\left(f(\tilde X)\right) + \frac{1}{n} Var\left(f(X)\right)}
+\end{aligned}
 $$
+
+
+In this case, PPI++ is essentially never worse than either classical or original PPI. Certainly the objective remains unbiased for any $\lambda$, since $E[\tilde L^f_N(\theta) - L^f_n(\theta)]=0$, thus $E[L_n(\theta) + \tilde L^f_N(\theta) - L^f_n(\theta)]=L(\theta)$.
+
+
+
+
 
 ## Cross-PPI
+Cross-prediction gives more stable inferences especially when the prediction model is not accurate. It begins by spliting the labeled data into $K$ chunks: $I_1=\left\{ 1,..., n/K \right\}, I_2= \left\{ n/K+1,...,2n/K \right\},...$ The cross-prediction estimator is defined as:
+
+$$
+\begin{aligned}
+\hat \theta ^{Cross-PPI}
+=&\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}Y_i +
+\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}f^{(j)}(X_i) 
+\end{aligned}
+$$
+where $f^{(j)}$ is the model obtained by training on all data except the $I_j$. Intuitively, the second term in $\hat \theta ^{Cross-PPI}$ is an empirical approximation of the population mean, the difference between first and third term is the rectifier which is an estimate of the bias between the predicted labels and the true labels. This cross-prediction estimator is also unbiased, as $E[f^{(j)}(\tilde X_{i'})]=E[f^{(j)}( X_{i})]$ for all $j\in [K], i \in I_j, i' \in [N]$.
+
 
 ## Cross-PPI++
+Combining PPI++ and Cross-PPI, we can compute the cross-PPI++ estimator, defined as:
+
+
+$$
+\begin{aligned}
+\hat \theta ^{Cross-PPI++}
+=&\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}Y_i +
+\lambda \left[
+\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}f^{(j)}(X_i) \right]
+\end{aligned}
+$$
+Similarly, the parameter $\lambda$ is tuned to minimize the asymptotic variance of the prediction-powered estimator. The optimal $\lambda$ is:
+
+$$
+\begin{aligned}
+&\hat \lambda \text{ with k-fold cross-validation}\\ 
+& = \frac {Cov\left(\frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i, \frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right)} {Var\left(\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right)} \\
+& = \frac{\frac{1}{n} Cov \left(w(X)Y, w(X)f^{(j)}(X) \right)}
+{ \frac{1}{K^2N} \sum_{j=1}^{K} Var \left(f^{(j)}(\tilde X )\right) + \frac{1}{n^2} \sum_{j=1}^{K}\sum_{i \in I_j}  Var \left( w(X)f^{(j)}(X) \right) }
+\end{aligned}
+$$
 
 # Extensions under Covariate Shift
+
+## Standard PPI under Covariate shift
 
 Although the foundational PPI framework assumes that the labeled and unlabeled data are drawn from the same distribution, this assumption does not always hold in practice.
 One common violation is covariate shift, where the distribution of input features, $p(X)$, differs between the labeled and unlabeled dataset, while the conditional distribution of the outcome given the feature $p(Y|X)$ remains the same (Shimodaira, 2000).
@@ -109,7 +175,9 @@ $$
 = \frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i + \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} w(X_i)f(X_i) \\
 $$
 
-Adding the parameter $\lambda$ to minimize the asymptotic variance of the prediction-powered estimator, we have:
+## Efficient PPI under Covariate shift
+
+Efficient PPI estimator adjusted by density ratio $w(x) = \tilde p(x)/ p(x)$ is:
 
 $$
 \hat \theta \text{ by Efficient PPI under covariate shift} = \frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i + 
@@ -135,20 +203,7 @@ $$
 
 ## Cross Efficient PPI under Covariate Shift
 
-Use the trained models to impute predictions and compute the cross-prediction estimator, defined as:
-
-$$
-\begin{aligned}
-\hat \theta \text{ by Cross PPI} &= 
-\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) +
-\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} (Y_i -f^{(j)}(X_i)) \\
-&= \frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} Y_i + 
-\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
-\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} f^{(j)}(X_i)
-\end{aligned}
-$$
-
-Consider the covariate shift situation and adding density ratio
+We can compute the cross-prediction estimator using the trained models, consider the covariate shift situation and adding density ratio, the estimator by Cross-PPI is defined as:
 
 $$
 \begin{aligned}
@@ -159,7 +214,7 @@ $$
 \end{aligned}
 $$
 
-Adding the parameter $\lambda$ to minimize the asymptotic variance of the prediction-powered estimator, we have:
+Adding the parameter $\lambda$ to minimize the asymptotic variance of the prediction-powered estimator under this covariate shift situation, we have:
 
 $$
 \begin{aligned}
@@ -170,6 +225,8 @@ $$
 \frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right]
 \end{aligned}
 $$
+Thus, $\lambda$ can be found at:
+
 $$
 \begin{aligned}
 & \hat \lambda \text{ with k-fold cross-validation} \\
