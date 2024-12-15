@@ -53,6 +53,197 @@ including different ratios of labeled to unlabeled data, varying levels of predi
 The simulation will be replicated 100 times, and performance metrics will include the coverage probability of confidence intervals, the mean width of intervals. 
 By systematically exploring these scenarios, we aim to identify the conditions under which each method performs optimally or encounters limitations, offering practical guidance for their application in real-world EHR datasets.
 
+# Methods
+
+## PPI
+
+Below are the the fundamental notations used in the PPI framework:
+
+- Let $(X,Y) \in (\mathcal X \times \mathcal Y) ^n$ denote the labeled or the gold-standard dataset, where $X=(X_1,\ldots,X_n)$ and $Y=(Y_1,\ldots,Y_n)$.
+- Similarly, let $(\tilde X, \tilde Y) \in (\mathcal X \times \mathcal Y)^N$ denote the unlabeled dataset, where the outcomes $\tilde Y$ are not observed.
+- In this section, we assume that $(X,Y)$ and $(\tilde X, \tilde Y)$ are independently and identically distributed (i.i.d.) samples from a common distribution, $p(x,y)$.
+- We have a prediction rule, $f:X \to Y$ that is independent of the observed data. Thus, $f(X_i)$ denote the predictions for the labeled data and $f(\tilde X_i)$ denote the predictions for the unlabeled data.
+
+The goal of PPI is to construct a confidence interval $\mathcal C^{PP}$ for the estimand $\theta$.
+We will focus on the mean outcome as the estimand in our study.
+Specifically, we are interested in the mean outcome in the unlabeled data, $E[\tilde Y]$.
+The key conceptual innovation of PPI lies in the introduction of measure of fit $m_\theta$ and rectifier $\Delta_\theta$:
+
+- Measure of fit $m_\theta$ is computed on the predictions for the unlabeled data $(\tilde X, f(\tilde X))$ and quantifies how close the estimate of $\theta$ it to its true value.
+- Rectifier $\Delta_\theta$ is defined as the difference of the measure of fit $m_\theta$ computed using the labeled data and its predictions $(X, Y, f(X))$. If the predictions are perfect, the rectifier is equal to zero.
+
+The PPI method computes a confidence interval as $\mathcal C^{PP}_\alpha = \{ \theta \text{ such that} |m_\theta + \Delta_\theta| \leq t_\theta(\alpha) \}$, where $t_\theta(\alpha)$ is a constant depending on the error level $\alpha$.
+
+When the estimand of interest is the mean outcome in unlabeled data, the algorithm for constructing the confidence interval $\mathcal C^{PP}_\alpha$ at error level $\alpha \in (0,1)$ is as follows:
+
+1. Point estimate of $\theta$ by PPI: $\hat \theta^{PP} \leftarrow \tilde \theta^f - \hat \Delta := \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} (f(X_i)-Y_i)$
+2. Empirical variance of estimate based on unlabeled data: $\hat \sigma_f^2 \leftarrow \frac{1}{N}\sum_{i=1}^{N} (f(\tilde X_i) - \tilde \theta^f)^2$
+3. Empirical variance of the rectifier: $\hat \sigma_\Delta^2 \leftarrow \frac{1}{n}\sum_{i=1}^{n} (f(X_i) - Y_i - \hat \Delta)^2$
+4. Normal approximation: $t_\alpha \leftarrow z_{1-\alpha/2} \sqrt{\frac{\hat \sigma_\Delta^2}{n} + \frac {\hat \sigma_f^2}{N}}$
+5. Construct prediction-powered confidence set: $\mathcal C^{PP}_\alpha = \left( \hat \theta^{PP} \pm t_\alpha \right)$
+
+## PPI++
+The original PPI constructs a confidence set for $\theta^*$ by searching through all possible values of $\theta$. 
+$$
+\begin{aligned}
+\hat \theta ^{PP}
+& = L_n(\theta) + \tilde L^f_N(\theta) - L^f_n(\theta)\\
+& = \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) + \frac{1}{n}\sum_{i=1}^{n} Y_i - \frac{1}{n}\sum_{i=1}^{n} f(X_i)\\
+& = \frac{1}{n}\sum_{i=1}^{n} Y_i + \left( \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i) \right)
+\end{aligned}
+$$
+Where $L(\theta)$ is the losses. It has a limitation: when the provided predictions are inaccurate, the intervals can be worse than the “classical intervals” using only the labeled data. To address this problem, we introduce a parameter $\lambda$:
+
+$$
+\begin{aligned}
+\hat \theta ^{PP++}
+& = L_n(\theta) + \lambda(\tilde L^f_N(\theta) - L^f_n(\theta)) \\
+& = \frac{1}{n}\sum_{i=1}^{n} Y_i + \lambda \left( \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i) \right)
+\end{aligned}
+$$
+
+Tuning the parameter $\lambda$ to minimize the asymptotic variance of the prediction-powered estimator, we have:
+
+$$
+\begin{aligned}
+\hat \lambda & = argmin_\lambda E\left\{
+\frac{1}{n}\sum_{i=1}^{n} Y_i - \theta^* + 
+\lambda \left[ \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i) \right]\right\}^2 \\
+& = \frac 
+{Cov\left(\frac{1}{n}\sum_{i=1}^{n} Y_i, \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i)\right)} 
+{Var\left(\frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} f(X_i)\right)} \\
+& = \frac 
+{\frac{1}{n} Cov\left(Y, f(X)\right)} 
+{\frac{1}{N} Var\left(f(\tilde X)\right) + \frac{1}{n} Var\left(f(X)\right)}
+\end{aligned}
+$$
+
+
+In this case, PPI++ is essentially never worse than either classical or original PPI. Certainly the objective remains unbiased for any $\lambda$, since $E[\tilde L^f_N(\theta) - L^f_n(\theta)]=0$, thus $E[L_n(\theta) + \tilde L^f_N(\theta) - L^f_n(\theta)]=L(\theta)$.
+
+
+
+
+
+## Cross-PPI
+Cross-prediction gives more stable inferences especially when the prediction model is not accurate. It begins by spliting the labeled data into $K$ chunks: $I_1=\left\{ 1,..., n/K \right\}, I_2= \left\{ n/K+1,...,2n/K \right\},...$ The cross-prediction estimator is defined as:
+
+$$
+\begin{aligned}
+\hat \theta ^{Cross-PPI}
+=&\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}Y_i +
+\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}f^{(j)}(X_i) 
+\end{aligned}
+$$
+where $f^{(j)}$ is the model obtained by training on all data except the $I_j$. Intuitively, the second term in $\hat \theta ^{Cross-PPI}$ is an empirical approximation of the population mean, the difference between first and third term is the rectifier which is an estimate of the bias between the predicted labels and the true labels. This cross-prediction estimator is also unbiased, as $E[f^{(j)}(\tilde X_{i'})]=E[f^{(j)}( X_{i})]$ for all $j\in [K], i \in I_j, i' \in [N]$.
+
+
+## Cross-PPI++
+Combining PPI++ and Cross-PPI, we can compute the cross-PPI++ estimator, defined as:
+
+
+$$
+\begin{aligned}
+\hat \theta ^{Cross-PPI++}
+=&\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}Y_i +
+\lambda \left[
+\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j}f^{(j)}(X_i) \right]
+\end{aligned}
+$$
+Similarly, the parameter $\lambda$ is tuned to minimize the asymptotic variance of the prediction-powered estimator. The optimal $\lambda$ is:
+
+$$
+\begin{aligned}
+&\hat \lambda \text{ with k-fold cross-validation}\\ 
+& = \frac {Cov\left(\frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i, \frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right)} {Var\left(\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right)} \\
+& = \frac{\frac{1}{n} Cov \left(w(X)Y, w(X)f^{(j)}(X) \right)}
+{ \frac{1}{K^2N} \sum_{j=1}^{K} Var \left(f^{(j)}(\tilde X )\right) + \frac{1}{n^2} \sum_{j=1}^{K}\sum_{i \in I_j}  Var \left( w(X)f^{(j)}(X) \right) }
+\end{aligned}
+$$
+
+# Extensions under Covariate Shift
+
+## Standard PPI under Covariate shift
+
+Although the foundational PPI framework assumes that the labeled and unlabeled data are drawn from the same distribution, this assumption does not always hold in practice.
+One common violation is covariate shift, where the distribution of input features, $p(X)$, differs between the labeled and unlabeled dataset, while the conditional distribution of the outcome given the feature $p(Y|X)$ remains the same (Shimodaira, 2000).
+To address this mismatch, the density ratio $w(x) = \tilde p(x)/ p(x)$ is introduced, where $\tilde p(x)$ is the distribution of the features in the unlabeled data and $p(x)$ is the distribution of the features in the gold-standard data (Sugiyama et al., 2007).
+Incorporating the density ratio allows for adjusting model predictions to account for the covariate shift, ensuring valid and unbiased inference in scenarios where the covariate shift occurs.
+
+Denote $w(x) = p^*(x)/\tilde p(x)$ the density ratio.
+
+$$
+\hat \theta \text{ by standard PPI under covariate shift}
+= \frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i + \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} w(X_i)f(X_i) \\
+$$
+
+## Efficient PPI under Covariate shift
+
+Efficient PPI estimator adjusted by density ratio $w(x) = \tilde p(x)/ p(x)$ is:
+
+$$
+\hat \theta \text{ by Efficient PPI under covariate shift} = \frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i + 
+\lambda \left[ \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} w(X_i)f(X_i) \right]
+$$
+We can find the parameter $\lambda$ at:
+
+$$
+\begin{aligned}
+\hat \lambda & = argmin_\lambda E\left\{
+\frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i - \theta^* + 
+\lambda \left[ \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} w(X_i)f(X_i) \right]\right\}^2 \\
+& = \frac 
+{Cov\left(\frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i, \frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} w(X_i)f(X_i)\right)} 
+{Var\left(\frac{1}{N}\sum_{i=1}^{N} f(\tilde X_i) - \frac{1}{n}\sum_{i=1}^{n} w(X_i)f(X_i)\right)} \\
+& = \frac 
+{\frac{1}{n} Cov\left(w(X)Y, w(X)f(X)\right)} 
+{\frac{1}{N} Var\left(f(\tilde X)\right) + \frac{1}{n} Var\left(w(X)f(X)\right)}
+\end{aligned}
+$$
+
+
+
+## Cross Efficient PPI under Covariate Shift
+
+We can compute the cross-prediction estimator using the trained models, consider the covariate shift situation and adding density ratio, the estimator by Cross-PPI is defined as:
+
+$$
+\begin{aligned}
+& \hat \theta \text{ by Cross PPI under covariate shift}\\
+=&\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)Y_i +
+\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i)
+\end{aligned}
+$$
+
+Adding the parameter $\lambda$ to minimize the asymptotic variance of the prediction-powered estimator under this covariate shift situation, we have:
+
+$$
+\begin{aligned}
+& \hat \theta \text{ by Cross Efficient PPI under covariate shift}\\
+=&\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)Y_i +
+\lambda \left[
+\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right]
+\end{aligned}
+$$
+Thus, $\lambda$ can be found at:
+
+$$
+\begin{aligned}
+& \hat \lambda \text{ with k-fold cross-validation} \\
+=& \frac {Cov\left(\frac{1}{n}\sum_{i=1}^{n} w(X_i) Y_i, \frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right)} {Var\left(\frac{1}{KN}\sum_{j=1}^{K}\sum_{i=1}^{N} f^{(j)}(\tilde X_i) -
+\frac{1}{n} \sum_{j=1}^{K}\sum_{i \in I_j} w(X_i)f^{(j)}(X_i) \right)} \\
+=& \frac{\frac{1}{n} Cov \left(w(X)Y, w(X)f^{(j)}(X) \right)}
+{ \frac{1}{K^2N} \sum_{j=1}^{K} Var \left(f^{(j)}(\tilde X )\right) + \frac{1}{n} Var \left(w(X)f^{(\cdot)}(X)\right)}
+\end{aligned}
+$$
+
 # Simulation Study
 
 ## Simulation Assuming IID Data
@@ -226,11 +417,105 @@ data.frame(p1, w0, w1) |>
 
 ## Performance of PPI Methods Without Covariate Shift
 
-```{r}
+We compared five PPI methods under the assumption i.i.d. data. The methods include the following:
+
+1. Classical inference, where $\lambda = 1$.
+2. Standard PPI, where $\lambda =1$.
+3. Efficient PPI, where $\lambda$ is estimated by the efficient score.
+4. Cross-PPI, where $\lambda = 1$.
+5. Cross-PPI++, where $\lambda$ is estimated by the efficient score.
+
+The performance of these methods was evaluated based on the mean width of the confidence interval and the coverage probability. 
+In the plot below, we show the mean width of the confidence interval on the left side and the coverage probability on the right side by sample size in the labeled data.
+Difference methods are represented by different colors.
+The noise levels are depicted in different rows in the plot matrix.
+
+```{r, fig.height=8, fig.width=8}
 iid_simulation <- readRDS("iid_simulation.rds")
+iid_settings <- iid_simulation[[1]] |> select(n, N, noise_level, method)
+
+# mean width of confidence interval
+iid_ci_width_100 <- do.call(
+  cbind, 
+  lapply(iid_simulation, \(x) x$ci_width)
+) |> as.data.frame()
+iid_ci_width_summary <- data.frame(
+  iid_settings,
+  ci_width_mean = apply(iid_ci_width_100, 1, mean, na.rm = T),
+  ci_width_sd = apply(iid_ci_width_100, 1, sd, na.rm = T)
+)
+
+# coverage probability
+iid_coverage_100 <- do.call(
+  cbind, 
+  lapply(iid_simulation, \(x) x$coverage)
+) |> as.data.frame()
+iid_coverage_summary <- data.frame(
+  iid_settings,
+  coverage_mean = apply(iid_coverage_100, 1, mean, na.rm = T),
+  coverage_sd = apply(iid_coverage_100, 1, sd, na.rm = T)
+)
+
+iid_ci_plot <- iid_ci_width_summary |>
+  mutate(Method = factor(
+    method, 
+    levels = c("classical CLT", "standard PPI", "PPI++", "Cross PPI", "Cross PPI++"), 
+    labels = c("Classical Inference (lambda=0)", "Standard PPI (lambda=1)", "PPI++", "Cross-PPI", "Cross-PPI++")
+  )) |>
+  mutate(noise_level = factor(
+    noise_level, 
+    levels = c(0.1, 1, 2, 5), 
+    labels = paste("Noise level =", c(0.1, 1, 2, 5)))) |>
+  ggplot(aes(x = n, y = ci_width_mean, color = Method)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~noise_level, ncol = 1, scales = "free_y") +
+  theme_bw() +
+  labs(y = "Average CI width over 100 replications", x = "Sample size in labeled data (n)") +
+  theme(
+    legend.position = "bottom", legend.title = element_blank(), 
+    legend.margin = margin(0,0,0,0, "pt"), legend.key.spacing.y = unit(0, "pt")
+  ) +
+  guides(color = guide_legend(nrow = 2, byrow = TRUE)) +
+  ylim(0,2)
+
+iid_coverage_plot <- iid_coverage_summary |>
+  mutate(Method = factor(
+    method, 
+    levels = c("classical CLT", "standard PPI", "PPI++", "Cross PPI", "Cross PPI++"), 
+    labels = c("Classical Inference (lambda=0)", "Standard PPI (lambda=1)", "PPI++", "Cross-PPI", "Cross-PPI++")
+  )) |>
+  mutate(noise_level = factor(
+    noise_level, 
+    levels = c(0.1, 1, 2, 5), 
+    labels = paste("Noise level =", c(0.1, 1, 2, 5)))) |>
+  ggplot(aes(x = n, y = coverage_mean, color = Method)) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 0.95, linetype = "dashed", color = "black") +
+  facet_wrap(~noise_level, ncol = 1, scales = "free_y") +
+  theme_bw() +
+  labs(y = "Coverage probability over 100 replications", x = "Sample size in labeled data (n)") +
+  theme(
+    legend.position = "bottom", legend.title = element_blank(), 
+    legend.margin = margin(0,0,0,0, "pt"), legend.key.spacing.y = unit(0, "pt")
+  ) +
+  guides(color = guide_legend(nrow = 2, byrow = TRUE)) +
+  ylim(0.85,1)
+
+ggpubr::ggarrange(iid_ci_plot, iid_coverage_plot, ncol = 2, common.legend = T)
+  
 ```
 
 ## Performance of PPI Methods Under Covariate Shift
+
+We compared five PPI methods under the assumption i.i.d. data. The methods include the following:
+
+1. Classical inference, where $\lambda = 1$.
+2. Standard PPI, where $\lambda =1$.
+3. Efficient PPI, without adjusting for the covariate shift.
+4. Efficient PPI, where $\lambda$ is estimated by the efficient score.
+5. Cross-PPI++, where $\lambda$ is estimated by the efficient score.
 
 ```{r}
 covshift_simulation <- readRDS("covshift_simulation.rds")
@@ -258,47 +543,121 @@ covshift_coverage_summary <- data.frame(
   coverage_sd = apply(covshift_coverage_100, 1, sd, na.rm = T)
 )
 
-covshift_ci_width_coverage_summary <- merge(covshift_ci_width_summary, covshift_coverage_summary)
-covshift_ci_width_coverage_summary <- covshift_ci_width_coverage_summary |>
-  select(-N, -ci_width_sd, -coverage_sd) |>
-  gather(key = "performance", value = "value", -n, -noise_level, -mu, -sigma, -p, -scenario, -method) |>
-  mutate(noise_level = factor(
-    noise_level, 
-    levels = c(0.1, 1, 2, 5), 
-    labels = paste("Noise level =", c(0.1, 1, 2, 5)))
-    ) |>
-  mutate(Method = factor(
-    method, 
-    levels = c("classical CLT", "standard PPI", "PPI++, no density ratio", "PPI++", "Cross PPI++"), 
-    labels = c("Classical Inference (lambda = 0)", 
-               "Standard PPI (lambda = 1)", 
-               "PPI++, no density ratio (w(X) = 1)", 
-               "PPI++", 
-               "Cross-PPI++")
-    )) |>
-  mutate(performance = factor(
-    performance, 
-    levels = c("ci_width_mean", "coverage_mean"), 
-    labels = c("CI width", "Coverage rate")
-    ))
-
-performance_visual <- function(df) {
+ci_width_by_n <- function(df) {
   df |>
-    ggplot(aes(x = n, y = value, color = Method)) +
+    mutate(noise_level = factor(noise_level, levels = c(0.1, 1, 2, 5), labels = paste("Noise level =", c(0.1, 1, 2, 5)))) |>
+    mutate(Method = factor(method, levels = c("classical CLT", "standard PPI", "PPI++, no density ratio", "PPI++", "Cross PPI++"), labels = c("Classical Inference (lambda = 0)", "Standard PPI (lambda = 1)", "Efficient PPI, no density ratio (w(X) = 1)", "Efficient PPI", "Efficient Cross-PPI"))) |>
+    ggplot(aes(x = n, y = ci_width_mean, color = Method)) +
     geom_line() +
     geom_point() +
-    facet_grid(cols = vars(performance), rows = vars(noise_level), scales = "free_y") +
+    facet_wrap(~noise_level, ncol = 1, scales = "free_y") +
     theme_bw() +
-    labs(y = "Performance over 100 replications", x = "Sample size in labeled data (n)") +
-    theme(
-      legend.position = "bottom", legend.title = element_blank(), 
-      legend.margin = margin(0,0,0,0, "pt"), legend.key.spacing.y = unit(0, "pt")
-    ) +
+    labs(y = "Average CI width over 100 replications", x = "Sample size in labeled data (n)") +
+    theme(legend.position = "bottom", legend.title = element_blank(), 
+          legend.margin = margin(0,0,0,0, "pt"), legend.key.spacing.y = unit(0, "pt")) +
     guides(color = guide_legend(nrow = 2, byrow = TRUE))
 }
 
-
+coverage_by_n <- function(df) {
+  df |>
+    mutate(noise_level = factor(noise_level, levels = c(0.1, 1, 2, 5), labels = paste("Noise level =", c(0.1, 1, 2, 5)))) |>
+    mutate(Method = factor(method, levels = c("classical CLT", "standard PPI", "PPI++, no density ratio", "PPI++", "Cross PPI++"), labels = c("Classical Inference (lambda = 0)", "Standard PPI (lambda = 1)", "Efficient PPI, no density ratio (w(X) = 1)", "Efficient PPI", "Efficient Cross-PPI"))) |>
+    ggplot(aes(x = n, y = coverage_mean, color = Method)) +
+    geom_line() +
+    geom_point() +
+    geom_hline(yintercept = 0.95, linetype = "dashed", color = "black") +
+    facet_wrap(~noise_level, ncol = 1, scales = "free_y") +
+    theme_bw() +
+    labs(y = "Coverage over 100 replications", x = "Sample size in labeled data (n)") +
+    theme(legend.position = "bottom", legend.title = element_blank(), 
+          legend.margin = margin(0,0,0,0, "pt"), legend.key.spacing.y = unit(0, "pt")) +
+    guides(color = guide_legend(nrow = 2, byrow = TRUE))
+}
 ```
+
+### Scenario 1, $\mu_0 = 0, \mu_1 = 0.2$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 1", mu == 0.2)) + ylim(0,2)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 1", mu == 0.2)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 1, $\mu_0 = 0, \mu_1 = 1$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 1", mu == 1)) + ylim(0,4.5)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 1", mu == 1)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 1, $\mu_0 = 0, \mu_1 = 2$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 1", mu == 2)) + ylim(0,15)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 1", mu == 2)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 2, $\sigma_0 = 1, \sigma_1 = 0.1$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 2", sigma == 0.1)) + ylim(0,6)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 2", sigma == 0.1)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 2, $\sigma_0 = 1, \sigma_1 = 0.5$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 2", sigma == 0.5)) + ylim(0,2.5)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 2", sigma == 0.5)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 2, $\sigma_0 = 1, \sigma_1 = 2$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 2", sigma == 2)) + ylim(0,6)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 2", sigma == 2)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 3, $p_0 = 0.5, p_1 = 0.55$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 3", p == 0.55)) + ylim(0,3)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 3", p == 0.55)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 3, $p_0 = 0.5, p_1 = 0.7$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 3", p == 0.7)) + ylim(0,3)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 3", p == 0.7)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+### Scenario 3, $p_0 = 0.5, p_1 = 0.85$
+
+```{r, fig.height=8, fig.width=8}
+p1 <- ci_width_by_n(covshift_ci_width_summary |> filter(scenario == "Scenario 3", p == 0.85)) + ylim(0,3)
+p2 <- coverage_by_n(covshift_coverage_summary |> filter(scenario == "Scenario 3", p == 0.85)) + ylim(0,1)
+ggpubr::ggarrange(p1, p2, ncol = 2, common.legend = T)
+```
+
+
+# Conclusion
+
+We compared the performance of different PPI frameworks under different scenarios of covariate shifts. Efficient PPI and Efficient cross-PPI have relatively narrower CI widths compared to standard PPI and CLT. When the covariate shift is mild and moderate, most of the PPI frameworks can maintain valid, with coverage over or close to 95%. However, when the difference between two distributions are large, only standard PPI has coverage validity, especially when labeled sample size is small. Another situation that PPI will be under powered is when the prediction model is not accurate, which is simulated as higher noise level in our analysis. The coverage of all PPI frameworks decrease when noise level increases, but standard PPI is again the best across all frameworks. Thus, Efficient PPI frameworks provide more precise parameter estimates while maintaining robustness under mild to moderate covariate shifts and noise level. 
+
+
+# Discussion
+
+Density ratio weighting performs well when the labeled and unlabeled data have relatively similar distributions. In such cases, PPI frameworks with density ratio weighting can achieve narrow and valid confidence interval estimation. However, estimating density ratio in real-world data could be challenging, where the data-generating process is complex and the true underlying distributions are unknown. Future work could explore the use of more robust techniques for density ratio estimation, such as kernel-based methods or machine learning approaches, to improve reliability in diverse real-world scenarios.
+
+Our study also highlights the trade-off between efficiency and validity across different PPI frameworks. Both adding parameter $\lambda$ and involving cross-prediction can improve efficiency, however, they may loss validity when covariate shift is severe and noise level in data is high. Standard PPI always maintain the highest overall coverage rate in different scenarios, and this robustness is particularly important in real-world applications. Therefore, the choice of PPI framework depends on the nature of application and data, balancing the efficiency and validity for specific scientific questions. 
 
 # References
 
@@ -306,8 +665,6 @@ performance_visual <- function(df) {
 :::
 
 # Appendix
-
-## Main Code Chunks
 
 ```{r settings, echo=TRUE, eval=FALSE}
 # simulation settings
@@ -718,7 +1075,7 @@ iid_simulation <- parLapply(cl, 1:B, function(i){
   return(res_summary_all)
 })
 
-saveRDS(iid_simulation, "iid_simlation.rds")
+saveRDS(iid_simulation, "iid_simulation.rds")
 stopCluster(cl)
 ```
 
@@ -911,20 +1268,6 @@ covshift_simulation <- parLapply(cl, 1:B, function(i){
   return(res_summary_all)
 })
 
-saveRDS(covshift_simulation, "covshift_simlation.rds")
+saveRDS(covshift_simulation, "covshift_simulation.rds")
 stopCluster(cl)
-```
-
-## Results
-
-```{r, fig.height=9, fig.width=8}
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 1", mu == 0.2))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 1", mu == 1))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 1", mu == 2))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 2", sigma == 0.1))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 2", sigma == 0.5))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 2", sigma == 2))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 3", p == 0.55))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 3", p == 0.7))
-performance_visual(ci_width_coverage_summary |> filter(scenario == "Scenario 3", p == 0.85))
 ```
