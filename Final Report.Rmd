@@ -1,23 +1,29 @@
 ---
-title: "Efficient Prediction-Powered Inference under Covariate Shift"
+title: "Prediction-Powered Inference Framework Under Covariate Shift"
 subtitle: "PHS 7065 Fall 2024 - Final Report"
-authors: |
-  Instructor: Dr. Xiang Zhou
-  Group Member: Yingjia Wei, Haojia Li
-geometry: margin=3cm
+author: |
+  | Instructor: Dr. Xuan Wang
+  | Group Members: Yingjia Wei, Haojia Li
+geometry: margin=2.5cm
 output: 
   pdf_document:
     toc: true
     number_sections: true
 date: "2024-12-14"
+bibliography: references.bib
+link-citations: true
 ---
-
+ 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = F,warning = F, message = F, cache = F)
 options(knitr.kable.NA = "")
 options(digits = 4)
 ```
-
+ 
+```{r load packages}
+library(tidyverse)
+```
+ 
 \newpage
 # Introduction
 
@@ -238,43 +244,11 @@ $$
 \end{aligned}
 $$
 
-# Simulation Study
-
-## Set up
-
--   $N=10,000$ as the sample size in the unlabeled data
-
--   $n = 100, 200, 500, 1000, 2000, 5000$ as the sample size in the labeled data
-
--   Data generating process: $Y = 1 + 2X_1 + 3X_2 + \epsilon$, where $\epsilon \sim N(0,\sigma_e^2), \sigma_e^2 = 0.01, 1, 4, 25$, $\epsilon$ is the noise, which is the difference between the true value and the predicted value $\hat Y = 1 + 2X_1 + 3X_2$
-
--   Distribution of labeled X: continuous variable $X_1 \sim N(\mu_0,\sigma_0^2)$, where $\mu_0=0$ and $\sigma_0=1$, and binary variable $X_2 \sim Bernoulli(p_0)$, where $p_0=0.5$. $X_1$ is independent from $X_2$.
-
-We consider three scenarios of covariate shift:
-
-1.  $X_1 \sim N(\mu_1,\sigma_0^2), \text{ where } \mu_1=0.2,1,2, \text{ and } X_2 \sim Bernoulli(p_0)$. In this case, the density ratio is: 
-    $$
-    w(x) = \frac{p^*(x)}{\tilde p(x)} = \exp \left\{\frac{1}{2\sigma_0^2}  (2x_1-\mu_1-\mu_0)(\mu_1 -\mu_0)  \right\}
-    $$
-    
-2.  $X_1 \sim N(\mu_0,\sigma_1^2), \text{ where } \sigma_1=0.1,0.5,2, \text{ and } X_2 \sim Bernoulli(p_0)$. In this case, the density ratio is: 
-    $$
-    w(x) = \frac{p^*(x)}{\tilde p(x)} = \frac{\sigma_0}{\sigma_1} \exp \left\{ -\frac{1}{2} \left( \frac{1}{\sigma_1^2} - \frac{1}{\sigma_0^2} \right) (x_1-\mu_0)^2 \right\}
-    $$
-
-3.  $X_1 \sim N(\mu_0,\sigma_0^2), \text{ and } X_2 \sim Bernoulli(p_1), \text{ where } p_1=0.55, 0.7, 0.85$. In this case, the density ratio is:
-    $$
-    w(x) = \frac{p^*(x)}{\tilde p(x)} = \left( \frac{p_1}{p_0} \right)^{x_2} \left( \frac {1-p_1}{1-p_0}\right)^{1-x_2}
-    $$
-
-
 
 # Results
 
 # Conclusion
-We compared the performance of different PPI frameworks under different scenarios of covariate shifts. In first scenario, Efficient PPI and Efficient cross-PPI have relatively narrower CI widths compared to standard PPI and CLT. When the covariate shift in scenario 1 is mild and moderate, most of the PPI frameworks can maintain valid, with coverage over or close to 95%. However, when the difference between two distributions are large, only standard PPI has coverage validity, especially when labeled sample size is small. Another situation that PPI will be under powered is when the prediction model is not accurate, which is simulated as higher noise level in our analysis. The coverage of all PPI frameworks decrease when noise level increases, but standard PPI is again the best across all frameworks. Thus, Efficient PPI frameworks provide more precise parameter estimates while maintaining robustness under mild to moderate covariate shifts and noise level. 
-
-In scenario 2, 
+We compared the performance of different PPI frameworks under different scenarios of covariate shifts. Efficient PPI and Efficient cross-PPI have relatively narrower CI widths compared to standard PPI and CLT. When the covariate shift is mild and moderate, most of the PPI frameworks can maintain valid, with coverage over or close to 95%. However, when the difference between two distributions are large, only standard PPI has coverage validity, especially when labeled sample size is small. Another situation that PPI will be under powered is when the prediction model is not accurate, which is simulated as higher noise level in our analysis. The coverage of all PPI frameworks decrease when noise level increases, but standard PPI is again the best across all frameworks. Thus, Efficient PPI frameworks provide more precise parameter estimates while maintaining robustness under mild to moderate covariate shifts and noise level. 
 
 
 # Discussion
@@ -285,84 +259,3 @@ Our study also highlights the trade-off between efficiency and validity across d
 # References
 
 # Appendix
-
-```{r}
-N <- 10000
-n <- c(100, 200, 500, 1000, 2000, 5000)
-sigma_e <- c(0.01, 1, 4, 25)
-mu_0 <- 0
-sigma_0 <- 1
-p_0 <- 0.5
-mu_1 <- c(0.2, 1, 2)
-sigma_1 <- c(0.1, 0.5, 2)
-p_1 <- c(0.55, 0.7, 0.85)
-
-set.seed(123)
-X1 <- rnorm(N, mu_0, sigma_0)
-X2 <- rbinom(N, 1, p_0)
-X <- cbind(X1, X2)
-Y_hat <- 1 + 2*X1 + 3*X2
-Y <- Y_hat + rnorm(N, 0, sigma_e[1])
-
-```
-
-```{r density ratios}
-w1 <- function(x1, mu_1, mu_0, sigma_0){
-  exp((1/(2*sigma_0^2))*(2*x1-mu_1-mu_0)*(mu_1-mu_0))
-}
-w2 <- function(x1, sigma_1, mu_0, sigma_0){
-  (sigma_0/sigma_1)*exp(-0.5*((1/sigma_1^2)-(1/sigma_0^2))*(x1-mu_0)^2)
-}
-w3 <- function(x2, p_1, p_0){
-  (p_1/p_0)^x2*((1-p_1)/(1-p_0))^(1-x2)
-}
-
-```
-
-```{r lambda}
-lambda_ppi <- function(n, N, Y_n, Y_hat_n, Y_hat_N, w){
-  cov <- cov(w*Y_n, w*Y_hat_n)
-  var_N <- var(Y_hat_N)
-  var_n <- var(w*Y_hat_n)
-  lam <- cov/n/(var_N/N+var_n/n)
-  return(lam)
-}
-
-lambda_ppi_cross <- function(n, N, Y_n, Y_hat_n, Y_hat_N, w, K, fold){
-  cov <- sum(sapply(1:K, \(j) cov(w[fold == j]*Y_n[fold == j], w[fold == j]*Y_hat_n[fold == j])) * tapply(fold, fold, length)) / n
-  var_N <- sum(apply(Y_hat_N, 2, var)) / (K^2)
-  var_n <- sum(sapply(1:K, \(j) var(w[fold == j]*Y_hat_n[fold == j])) * tapply(fold, fold, length)) / n
-  lam <- cov/n/(var_N/N+var_n/n)
-  return(lam)
-}
-```
-
-```{r pointest}
-pointest_ppi <- function(lam, n, N, Y_n, Y_hat_n, Y_hat_N, w){
-  mean(w*Y_n) + lam*mean(unlist(Y_hat_N)) - lam*mean(Y_hat_n*w)
-}
-```
-
-
-```{r interval}
-std_ppi <- function(lam, n, N, Y_n, Y_hat_n, Y_hat_N, w){
-  Y_hat_N_var <- var(lam*Y_hat_N)/N
-  rectifier_var <- var(w*(Y_n-lam*Y_hat_n))/n
-  std <- sqrt(Y_hat_N_var+rectifier_var)
-  return(std)
-}
-
-std_ppi_cross <- function(lam, n, N, Y_n, Y_hat_n, Y_hat_N, w, K, fold){
-  Y_hat_N_var <- sum(apply(Y_hat_N, 2, var)) *lam^2 / (K^2*N)
-  rectifier_var <- sum(sapply(1:K, \(j) var(w[fold == j]*(Y_n[fold == j] - lam*Y_hat_n[fold == j]))) * tapply(fold, fold, length)) / (n^2)
-  std <- sqrt(Y_hat_N_var+rectifier_var)
-  return(std)
-}
-
-ci_ppi <- function(pointest, std, alpha) {
-  z <- qnorm(1-alpha/2)
-  ll <- pointest - z*std
-  ul <- pointest + z*std
-  return(c(ll, ul))
-}
-```
