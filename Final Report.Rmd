@@ -272,8 +272,15 @@ We consider three scenarios of covariate shift:
 # Results
 
 # Conclusion
+We compared the performance of different PPI frameworks under different scenarios of covariate shifts. In first scenario, Efficient PPI and Efficient cross-PPI have relatively narrower CI widths compared to standard PPI and CLT. When the covariate shift in scenario 1 is mild and moderate, most of the PPI frameworks can maintain valid, with coverage over or close to 95%. However, when the difference between two distributions are large, only standard PPI has coverage validity, especially when labeled sample size is small. Another situation that PPI will be under powered is when the prediction model is not accurate, which is simulated as higher noise level in our analysis. The coverage of all PPI frameworks decrease when noise level increases, but standard PPI is again the best across all frameworks. Thus, Efficient PPI frameworks provide more precise parameter estimates while maintaining robustness under mild to moderate covariate shifts and noise level. 
+
+In scenario 2, 
+
 
 # Discussion
+Density ratio weighting performs well when the labeled and unlabeled data have relatively similar distributions. In such cases, PPI frameworks with density ratio weighting can achieve narrow and valid confidence interval estimation. However, estimating density ratio in real-world data could be challenging, where the data-generating process is complex and the true underlying distributions are unknown. Future work could explore the use of more robust techniques for density ratio estimation, such as kernel-based methods or machine learning approaches, to improve reliability in diverse real-world scenarios.
+
+Our study also highlights the trade-off between efficiency and validity across different PPI frameworks. Both adding parameter $\lambda$ and involving cross-prediction can improve efficiency, however, they may loss validity when covariate shift is severe and noise level in data is high. Standard PPI always maintain the highest overall coverage rate in different scenarios, and this robustness is particularly important in real-world applications. Therefore, the choice of PPI framework depends on the nature of application and data, balancing the efficiency and validity for specific scientific questions. 
 
 # References
 
